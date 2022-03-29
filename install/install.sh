@@ -8,6 +8,6 @@ sudo apt install mtr
 pip3 install --user --upgrade git+https://github.com/himanshudabas/twint.git@origin/twint-fixes#egg=twint
 
 echo "\n[+] Installing Python Modules...\n"
-pip3 install -r pip_requirements.txt
+pip3 install -r ./install/pip_requirements.txt
 
 echo "\n[=] Installation completed! \n"
