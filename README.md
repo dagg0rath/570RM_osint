@@ -3,7 +3,7 @@
 OSINT Tools gathered in a simple tu use tool built in python3. Get your own __numverify.com API Key__ in order to run the 3rd module
 
 # Install
-* git clone https://github.com/mrcripoll/570RM_osint/
+* git clone https://github.com/dagg0rath/570RM_osint/
 * cd 570RM_osint
 * chmod +x 570RM_osint
 * ./570RM_osint
