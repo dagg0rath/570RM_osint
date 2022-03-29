@@ -1,0 +1,888 @@
+#!/bin/python3
+## Imports ##
+import subprocess, time, sys, re, os
+from colorama import Fore
+from sys import platform
+import readline
+import requests
+import json, csv
+try:
+	## DOMAIN OSINT ##
+	def domain(target):
+		def lookup(target):
+			import requests
+
+			web = f"http://ip-api.com/json/{target}"
+			age_web = f"https://input.payapi.io/v1/api/fraud/domain/age/{target}"
+			response = requests.get(web).json()
+			
+			response2 = requests.get(age_web).json()
+			days = response2['result']
+			if days >= 365:
+				years = days // 365
+				months = (days - years*365) // 30
+				n_days = (days - years * 365 - months*30)
+			else:
+				aged = aged
+			
+			print(Fore.GREEN + f"\n[=]--Gathering information about {target}...")
+			print("-"*60 + "\n" + Fore.WHITE)
+			print("IP: " + response['query'])
+			print("Status: " + response['status'])
+			print("Country/country code: " + response['country'] + response['countryCode'])
+			print("City: " + response['city'])
+			print("TimeZone: " + response['timezone'])
+			print("Latitude: " + str(response['lat']))
+			print("Longitude: " + str(response['lon']))
+			print("ISP: " + response['isp'])
+			print(f"Ages: {years} años {months} meses y {n_days} días")
+			print(Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+
+		def whois_l(target):
+			print(Fore.RED + "[=]--WHOIS output" + Fore.WHITE)
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+			os.system(f'whois {target}')
+			print(Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+
+		def dns_l(target):
+			print(Fore.RED + "[=]--DNS Lookup output" + Fore.WHITE)
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+			os.system(f'dig {target} +trace ANY')
+			print(Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+
+		def tracer(target):
+			print(Fore.RED + "[=]--TraceRoute Lookup output" + Fore.WHITE)
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+			os.system(f'mtr -4 -rwc 1 {target}')
+			print(Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+
+		def hunter(target):
+			print(Fore.RED + "[=]--Email Hunter output" + Fore.WHITE)
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+			get_html = os.system(f'curl -s -o {target}_emails.html https://www.email-format.com/d/{target}/')
+
+			lines = []
+			with open(f'{target}_emails.html', 'r') as file:
+				for line_number, line in enumerate(file, start=1):
+				  if line_number > 314:
+				    lines.append(line)
+			with open(f'{target}_emails.html', 'w') as file:
+				file.writelines(lines)
+			try:
+				os.remove("emails.txt")
+			except OSError:
+				pass
+
+			os.system(f"grep @{target} {target}_emails.html | sed 's/[[:blank:]]//g' >> emails.txt")
+			os.system(f'cat emails.txt')
+			os.remove(f'{target}_emails.html')
+			print("\n"+ Fore.GREEN + "-"*50 + Fore.WHITE)
+			
+			print(Fore.RED + "[+]--Gathered emails stored in emails.txt "+ Fore.WHITE)
+				
+		lookup(target)
+		whois_l(target)
+		dns_l(target)
+		tracer(target)
+		hunter(target)
+		back_m()
+
+	## TWITTER OSINT ##
+			
+	## TWEETER INFORMATION GATHERING with twint #
+	def tweets():
+		import twint
+		t = twint.Config()
+		name_output = input("[?] Please specify a name for the output folder: ")
+		t.Output = name_output
+		limit = int(input("[?] Please specify a limit for gathered tweets (max 3200)\n"))
+		if limit > 3200:
+			limit = 3200
+			t.Limit = limit
+		else:
+			t.Limit = limit
+		t.Store_csv = True
+		print("\n[?] What do you wish to search for: ")
+		print("--------------------------------------------")
+		print("[1]--User Tweets")
+		def options():		
+			choice = int(input("[2]--Location based Tweets\n"))
+			if choice == 1:
+				username = input("[?] Please specify the username you wish to target: ")
+				t.Username = username
+				## PAIN IN THE FUCKING ASS QUESTION ##
+				def args():
+					one_choice = input("[?] You wish to specify a hastag (Y/n): ")
+					if one_choice.upper() == "Y":
+						print("[?] Please, specify it: ")
+						hastag = input("[+] remember to use # before keyword  ")
+						t.Search = hastag
+						t.Show_hastags = True
+						two_choice = input("[?] You wish to specify a location to target (Y/n): ")
+						if two_choice.upper() == "Y":
+							location = input("[?] Please, specify it: ")
+							t.Near = location
+
+							three_choice = input("[?] You wish to specify a user that the original target tweeted to (Y/n): ")
+							if three_choice.upper() == "Y":
+								who = input("[?] Please, specify the user: ")
+								t.To = who
+
+								four_choice = input("[?] You wish to filter tweets sent since a specific date (Y/n): ")
+								if four_choice.upper() == "Y":
+									print("?] Please, specify it: ")
+									since = input("[+] input as shown in this example: 2017-12-27   ")
+									t.Since = since
+									
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+								#4_1	
+								else:
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+							#3_1
+							else:
+								four_choice = input("[?] You wish to filter tweets sent since a specific date (Y/n): ")
+								if four_choice.upper() == "Y":
+									print("?] Please, specify it: ")
+									since = input("[+] input as shown in this example: 2017-12-27   ")
+									t.Since = since
+									
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+								else:
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+						#2_1
+						else:
+							three_choice = input("[?] You wish to specify a user that the original target tweeted to (Y/n): ")
+							if three_choice.upper() == "Y":
+								who = input("[?] Please, specify the user: ")
+								t.To = who
+
+								four_choice = input("[?] You wish to filter tweets sent since a specific date (Y/n): ")
+								if four_choice.upper() == "Y":
+									print("?] Please, specify it: ")
+									since = input("[+] input as shown in this example: 2017-12-27   ")
+									t.Since = since
+									
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+								else:
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+							#3
+							else:
+								four_choice = input("[?] You wish to filter tweets sent since a specific date (Y/n): ")
+								if four_choice.upper() == "Y":
+									print("?] Please, specify it: ")
+									since = input("[+] input as shown in this example: 2017-12-27   ")
+									t.Since = since
+									
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+								#4
+								else:
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+					else:
+						two_choice = input("[?] You wish to specify a location to target (Y/n): ")
+						if two_choice.upper() == "Y":
+							print("")
+							location = input("[?] Please, specify it: ")
+							t.Near = location
+							three_choice = input("[?] You wish to specify a user that the original target tweeted to (Y/n): ")
+							if three_choice.upper() == "Y":
+								who = input("[?] Please, specify the user: ")
+								t.To = who
+
+								four_choice = input("[?] You wish to filter tweets sent since a specific date (Y/n): ")
+								if four_choice.upper() == "Y":
+									print("?] Please, specify it: ")
+									since = input("[+] input as shown in this example: 2017-12-27   ")
+									t.Since = since
+									
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+							else:
+								four_choice = input("[?] You wish to filter tweets sent since a specific date (Y/n): ")
+								if four_choice.upper() == "Y":
+									print("?] Please, specify it: ")
+									since = input("[+] input as shown in this example: 2017-12-27   ")
+									t.Since = since
+									
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+								else:
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+						else:
+							three_choice = input("[?] You wish to specify a user that the original target tweeted to (Y/n): ")
+							if three_choice.upper() == "Y":
+								who = input("[?] Please, specify the user: ")
+								t.To = who
+
+								four_choice = input("[?] You wish to filter tweets sent since a specific date (Y/n): ")
+								if four_choice.upper() == "Y":
+									print("?] Please, specify it: ")
+									since = input("[+] input as shown in this example: 2017-12-27   ")
+									t.Since = since
+									
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+								else:
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+							else:
+								four_choice = input("[?] You wish to filter tweets sent since a specific date (Y/n): ")
+								if four_choice.upper() == "Y":
+									print("?] Please, specify it: ")
+									since = input("[+] input as shown in this example: 2017-12-27   ")
+									t.Since = since
+									
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+								else:
+									five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+									if five_choice.upper() == "Y":
+										print("?] Please, specify it: ")
+										until = input("[+] input as shown in this example: 2017-12-27   ")
+										t.Until = until
+									else:
+										print("[=] Gathering tweets and storing them ")
+				args()
+				twint.run.Search(t)
+				print(Fore.RED + f"[+] RESULTS STORED IN {name_output} FOLDER\n\n" + Fore.WHITE)   
+			elif choice == 2:
+				location = input("[?] Please, specify it: ")
+				t.Near = location
+				four_choice = input("[?] You wish to filter tweets sent since a specific date (Y/n): ")
+				if four_choice.upper() == "Y":
+					print("?] Please, specify it: ")
+					since = input("[+] input as shown in this example: 2017-12-27   ")
+					t.Since = since
+								
+					five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+					if five_choice.upper() == "Y":
+						print("?] Please, specify it: ")
+						until = input("[+] input as shown in this example: 2017-12-27   ")
+						t.Until = until
+					else:
+						print("[=] Gathering tweets and storing them ")
+				else:
+					five_choice = input("[?] You wish to filter tweets sent until a specific date (Y/n): ")
+					if five_choice.upper() == "Y":
+						print("?] Please, specify it: ")
+						until = input("[+] input as shown in this example: 2017-12-27   ")
+						t.Until = until
+					else:
+						print("[=] Gathering tweets and storing them ")
+				twint.run.Search(t)
+				print(Fore.RED + f"[+] RESULTS STORED IN {name_output} FOLDER\n\n" + Fore.WHITE)
+			else:
+				print("\n[-] None chosen, quitting...\n\n")
+		def simplify():
+			import os
+			import pandas as pd
+			class cd:
+			    def __init__(self, newPath):
+			        self.newPath = os.path.expanduser(newPath)
+			    def __enter__(self):
+			        self.savedPath = os.getcwd()
+			        os.chdir(self.newPath)
+			    def __exit__(self, etype, value, traceback):
+			        os.chdir(self.savedPath)		
+			with cd(f"./{name_output}"):
+				with open('tweets.csv', 'rt', encoding='utf8') as csvfile:
+					content = csv.reader(csvfile)
+					data = list(content)
+				
+				file = open("simplified_tweets.txt", 'w')
+				for row in data:
+					file.writelines(row[3] + " | " +row[4] + " | " +row[7] + " | " + row[10] +'\n')
+				file.close()
+				# Convert csv to html file
+				a = pd.read_csv("tweets.csv")
+				a.to_html("tweets.html")
+				html_file = a.to_html()
+			
+		options()
+		simplify()
+		back_m()
+
+	## PHONE OSINT ##
+	def phone(number, config_key):
+		web = "http://apilayer.net/api/validate?access_key=" + config_key + "&number=" + number + "&country_code=&format=1"
+
+		output = requests.get(web)
+		content = output.text
+		obj = json.loads(content)
+		country_name = obj['country_name']
+		country_code = obj['country_code']
+		carrier = obj['carrier']
+		prefix = obj['country_prefix']
+		line_type = obj['line_type']
+		international_format = obj['international_format']
+
+		print(Fore.GREEN + "\n[=] Gathering information...")
+		print("---------------------------------------")
+		print("Phone number: " + str(international_format))
+		print("Country: " + str(country_name))
+		print("Country Code: " + str(country_code))
+		print("Country Prefix: " + str(prefix))
+		print("Carrier: " + str(carrier))
+		print("Line Type: " + str(line_type))
+		print("---------------------------------------\n" + Fore.WHITE)
+		back_m()
+
+	## URLHAUS Last 30Days ##
+	def urlhaus():
+		os.system(f'clear')
+		def whole():
+		    print("\n[+] DATA: \n")
+		    print(Fore.GREEN + "-"*213)
+		    print("ID         Date Added           URL                                      Status     last_online          Threat               Tags                         urlhaus_link                             Reporter")
+		    print("-"*213 + Fore.WHITE)
+		    with open('recent_threats.csv', 'r') as file:
+		        csv_reader = csv.reader(file)
+		        n = 0
+		        data = []
+		        while n < 9:
+		            next(csv_reader)
+		            n += 1
+		        for row in csv_reader:
+		            print('{:<10} {:<20} {:<40} {:<10} {:<20} {:<20} {:<28} {:<40} {:<15}'.format(*row))
+
+		## Filter csv for a certain string and print it
+		def grep_file():
+		    ch1 = int(input(Fore.GREEN + """
+[?]--Specify the type of string you want to look for:
+-----------------------------------------------------
+[01]--Online status
+[02]--Specific date
+"""+ Fore.WHITE))
+
+		    if ch1 == 1:
+		        query = "online"
+		        print("\n[+] DATA: \n")
+		        print(Fore.GREEN + "-"*213)
+		        print("ID         Date Added           URL                                      Status     last_online          Threat               Tags                         urlhaus_link                             Reporter")
+		        print("-"*213 + Fore.WHITE)
+		        with open('recent_threats.csv', 'r') as file:
+		            csv_reader = csv.reader(file)
+		            n = 0
+		            while n < 9:
+		                next(csv_reader)
+		                n += 1
+		            for row in csv_reader:
+		                if query == row[3]:
+		                    print('{:<10} {:<20} {:<40} {:<10} {:<20} {:<20} {:<28} {:<40} {:<15}'.format(*row))
+		    elif ch1 == 2:
+		        query = input(Fore.GREEN + "\n[?] Specify it using format y-m-d:  "+ Fore.WHITE)
+		        print("\n[+] DATA: \n")
+		        print(Fore.GREEN + "-"*213)
+		        print("ID         Date Added           URL                                      Status     last_online          Threat               Tags                         urlhaus_link                             Reporter")
+		        print("-"*213 + Fore.WHITE)
+		        with open('recent_threats.csv', 'r') as file:
+		            csv_reader = csv.reader(file)
+		            n = 0
+		            while n < 9:
+		                next(csv_reader)
+		                n += 1
+		            for row in csv_reader:
+		                if query in row[1]:
+		                    print('{:<10} {:<20} {:<40} {:<10} {:<20} {:<20} {:<28} {:<40} {:<15}'.format(*row))
+
+		print(Fore.GREEN + "[=] Gathering urlhaus's recent threats index...\n"+ Fore.WHITE)
+		os.system(f'curl -s -o recent_threats.csv https://urlhaus.abuse.ch/downloads/csv_recent/')
+		print("-"*50 + "\n\n")
+
+		try:
+			q1 = int(input(Fore.GREEN + """
+[00]-- What do you wish to do ?
+-------------------------------
+[01]--Print entire file
+[02]--Grep a specific string
+"""+ Fore.WHITE))
+			if q1 == 1:
+			    whole()
+			elif q1 == 2:
+			    grep_file()
+			else:
+			    print("[-] None chosen, quitting...\n\n")
+		except KeyboardInterrupt:
+			print(Fore.GREEN + "\n[-] Program interrumpted by user, quitting...\n\n" + Fore.WHITE)
+		except ValueError:
+			print(Fore.GREEN + "\n[-] Wrong value given, quitting...\n\n" + Fore.WHITE)
+		back_m()
+
+	## SEARCHCODE LOOKUP ##
+	def searchcode_checker():
+		from operator import itemgetter
+
+		searchterm = input("[?] Enter the searchterm you want to look for: ")
+		pagenumber = int(input("[?] Enter the page number: "))
+		loc = int(input("[?] Enter the minimum lines of code (from 0 to 10000): "))
+		loc2 = int(input("[?] Enter the maximum lines of code (from 0 to 10000): "))
+		per_page = "100"
+		web = "https://searchcode.com/api/codesearch_I/?q=" + searchterm + "&p=" + str(pagenumber) + "&per_page" + per_page + "&loc=" + str(loc) + "&loc2=" + str(loc2)
+
+		def processing(web):
+			output = requests.get(web)
+			fine = output.json()
+			results = fine['results']
+			total = len([ele for ele in results if isinstance(ele, dict)])
+			print("\n")
+			print("-"*60)
+			print("Total Matches found in page "+ str(pagenumber) +": " + str(total))
+			print("Query: " + str(fine['query']))
+
+			matches = 0
+			while matches < total:
+				print("-"*60)
+				print(Fore.RED + "Name: " + Fore.WHITE + results[matches].get('name'))
+				print("-"*60)
+				print("ID: " + str(results[matches].get('id')))
+				print("Code Source: " + results[matches].get('repo'))
+				print("Filename: " + str(results[matches].get('filename')))
+				print("Language: " + results[matches].get('language'))
+				print("Searchcode URL: " + str(results[matches].get('url')))
+				print("-"*60)
+				matches += 1
+		
+		processing(web)
+		back_m()
+
+	## LEAKED EMAILS ##
+	def leaks_check():
+		import urllib3 
+		import hashlib  
+		import argparse
+		import urllib
+		from six.moves import input
+
+		tor_proxy = None
+
+		def parse_firefox_monitor(response):
+				start_breachName = response.text.find("breach-title")
+				leaks = False
+				while start_breachName != -1:
+					leaks = True
+					print(Fore.RED + "Leak found!" + Fore.WHITE)
+					start_breachName = start_breachName + 14
+					end_breachName = response.text.find("</span>", start_breachName)
+					print(Fore.RED + "--> " + response.text[start_breachName:end_breachName] + Fore.WHITE)
+					end_key = end_breachName
+					start_index = response.text.find("breach-key", end_key) + 12
+					while start_index > 12 and (start_index < response.text.find("breach-title", start_breachName + 12) or response.text.find("breach-title", start_breachName + 12) < 12):
+						end_index = response.text.find("</span>", start_index)
+						start_key = response.text.find("breach-value", end_index) + 14
+						end_key = response.text.find("</span>", start_key)
+						value = response.text[start_index:end_index]
+						key = response.text[start_key:end_key]
+						print("\t\t- " + value + " " + key)
+						start_index = response.text.find("breach-key", end_key) + 12
+					start_breachName = response.text.find("breach-title", end_breachName)
+				if not leaks:
+					print(Fore.BLUE + "[-] Email not found on Firefox Monitor")
+		def check_firefox_monitor(email):
+			print(Fore.WHITE + f"------------------------------\n Checking {email} on Firefox Monitor\n------------------------------")
+			url_form = 'https://monitor.firefox.com'
+			headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36', "Accept-Language": "en-US,en;q=0.5"}
+			client = requests.Session()
+			client.headers.update(headers)
+			response = client.get(url_form, proxies=tor_proxy)
+			inicio_csrf = response.text.find("_csrf")
+			if (inicio_csrf != -1):
+				inicio_csrf = response.text.find("value", inicio_csrf)
+				if (inicio_csrf != -1):
+					inicio_csrf = inicio_csrf + 7
+					fin_csrf = response.text.find("\"", inicio_csrf)
+					csrfToken = response.text[inicio_csrf:fin_csrf]
+					inicio_scannedEmailId = response.text.find("scannedEmailId")
+					inicio_scannedEmailId = response.text.find("value",inicio_scannedEmailId)
+					inicio_scannedEmailId = inicio_scannedEmailId+7
+					fin_scannedEmailId = response.text.find("\"",inicio_scannedEmailId)
+					scannedEmailID = response.text[inicio_scannedEmailId:fin_scannedEmailId]
+					emailHash = hashlib.sha1(bytes(email, "utf8"))
+					emailHash = emailHash.hexdigest().upper()
+					url = "https://monitor.firefox.com/scan"
+					params = {"_csrf": csrfToken, "email": email, "pageToken": "", "scannedEmailId": scannedEmailID, "emailHash": emailHash}
+					response = client.post(url, params, proxies=tor_proxy)
+					client.close()
+					parse_firefox_monitor(response)
+			else:
+				print(Fore.RED + "[-] Error: Firefox Monitor not responding... (There's a limit per hour, wait or use kali-whoami)" + Fore.WHITE)
+		def emailreputation(email):
+			response = requests.get('https://emailrep.io/' + email, proxies=tor_proxy)
+			emailreputation = json.loads(response.text)
+			try:
+				reputation = emailreputation["reputation"]
+				credentials_leaked = emailreputation["details"]["credentials_leaked"]
+				data_breach = emailreputation["details"]["data_breach"]
+				last_seen = emailreputation["details"]["last_seen"]
+				if (credentials_leaked == True or data_breach == True):
+					print(Fore.WHITE + "This email has a " + Fore.RED + reputation + " reputation\n" +
+						Fore.WHITE + "Breach credentials? " + Fore.RED + str(
+						credentials_leaked) + Fore.WHITE + "\nBreach data? " + Fore.RED + str(data_breach) +
+						Fore.WHITE + "\nLast seen on: " + Fore.RED + str(last_seen))
+				else:
+					print(Fore.GREEN + "This email has a " + reputation + " reputation\nBreached Credentials? " + str(
+						credentials_leaked) + "\nBreach data? " + str(data_breach))
+			except:
+				print(Fore.RED + "Error: " + emailreputation["reason"])
+		def breachparse(email):
+			folder = input(Fore.YELLOW + "[?] Specify the route for your BreachCompilation/data folder: " + Fore.WHITE)
+			os.system(f'./breach-parse.sh {email} {email}.txt {folder}')
+			print(Fore.RED + "[+] Results stored in current directory" + Fore.WHITE)
+
+
+		f_e = int(input(Fore.BLUE + """
+[?] Choose one of the options below:
+--------------------------------------------
+[01]--Email
+[02]--Email list txt file
+""" + Fore.WHITE))
+		if f_e == 1:
+			email = input(Fore.YELLOW + "[?] Specify the email you want to check: " + Fore.WHITE)
+			check_firefox_monitor(email)
+			emailreputation(email)
+			breachh = input(Fore.YELLOW + "[?] Check for breached credentials on BreachCompilation file (Y/n): " + Fore.WHITE)
+			if breachh.upper() == "Y":
+				print(Fore.RED + "[+] breach-parse script by hmaverickadams at https://github.com/hmaverickadams/breach-parse")
+				breachparse(email)
+			else:
+				pass
+		else:
+			file_n = input(Fore.YELLOW + "[?] Specify the name of the .txt file where emails are stored: "+ Fore.WHITE)
+			archivo = open(f'{file_n}', 'r')
+			lines = archivo.readlines()
+			for line in lines:
+				email = line
+				check_firefox_monitor(email)
+				emailreputation(email)
+				breachh = input(Fore.YELLOW + "[?] Check for breached credentials on BreachCompilation file (Y/n): " + Fore.WHITE)
+				if breachh.upper() == "Y":
+					print(Fore.RED + "[+] breach-parse script by hmaverickadams at https://github.com/hmaverickadams/breach-parse")
+					breachparse(email)
+				else:
+					pass
+				time.sleep(3)
+		back_m()
+
+
+	## CCTV CAMERAS ##
+	def cameras():	
+		print(Fore.RED + "[+] Many thanks to AngelSecurityTeam at https://github.com/AngelSecurityTeam for the original script"+ Fore.WHITE)
+		print(Fore.YELLOW + "[?] Please choose a specific country you wish to target: " + Fore.WHITE)
+		print(Fore.GREEN + """
+	    1) United States                31) Mexico                61) Moldova
+	    2) Japan                        32) Finland               62) Nicaragua
+	    3) Italy                        33) China                 63) Malta
+	    4) Korea                        34) Chile                 64) Trinidad And Tobago
+	    5) France                       35) South Africa          65) Soudi Arabia
+	    6) Germany                      36) Slovakia              66) Croatia
+	    7) Taiwan                       37) Hungary               67) Cyprus
+	    8) Russian Federation           38) Ireland               68) Pakistan
+	    9) United Kingdom               39) Egypt                 69) United Arab Emirates
+	    10) Netherlands                 40) Thailand              70) Kazakhstan
+	    11) Czech Republic              41) Ukraine               71) Kuwait
+	    12) Turkey                      42) Serbia                72) Venezuela
+	    13) Austria                     43) Hong Kong             73) Georgia
+	    14) Switzerland                 44) Greece                74) Montenegro
+	    15) Spain                       45) Portugal              75) El Salvador
+	    16) Canada                      46) Latvia                76) Luxembourg
+	    17) Sweden                      47) Singapore             77) Curacao
+	    18) Israel                      48) Iceland               78) Puerto Rico
+	    19) Iran                        49) Malaysia              79) Costa Rica
+	    20) Poland                      50) Colombia              80) Belarus
+	    21) India                       51) Tunisia               81) Albania
+	    22) Norway                      52) Estonia               82) Liechtenstein
+	    23) Romania                     53) Dominican Republic    83) Bosnia And Herzegovia
+	    24) Vietnam                     54) Sloveania             84) Paraguay
+	    25) Belgium                     55) Ecuador               85) Philippines
+	    26) Brazil                      56) Lithuania             86) Faroe Islands
+	    27) Bulgaria                    57) Palestinian           87) Guatemala
+	    28) Indonesia                   58) New Zealand           88) Nepal
+	    29) Denmark                     59) Bangladeh             89) Peru
+	    30) Argentina                   60) Panama                90) Uruguay
+	                                                              91) Extra
+	    """ + Fore.WHITE)
+		try:
+		    print()
+		    countries = ["US", "JP", "IT", "KR", "FR", "DE", "TW", "RU", "GB", "NL",
+		                 "CZ", "TR", "AT", "CH", "ES", "CA", "SE", "IL", "PL", "IR",
+		                 "NO", "RO", "IN", "VN", "BE", "BR", "BG", "ID", "DK", "AR",
+		                 "MX", "FI", "CN", "CL", "ZA", "SK", "HU", "IE", "EG", "TH",
+		                 "UA", "RS", "HK", "GR", "PT", "LV", "SG", "IS", "MY", "CO",
+		                 "TN", "EE", "DO", "SI", "EC", "LT", "PS", "NZ", "BD", "PA",
+		                 "MD", "NI", "MT", "IT", "SA", "HR", "CY", "PK", "AE", "KZ",
+		                 "KW", "VE", "GE", "ME", "SV", "LU", "CW", "PR", "CR", "BY",
+		                 "AL", "LI", "BA", "PY", "PH", "FO", "GT", "NP", "PE", "UY",
+		                 "-"]
+		    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux i686; rv:68.0) Gecko/20100101 Firefox/68.0"}
+		    num = int(input("[?] What country will it be : "))
+		    print("[=] Gathering CCTV Cameras, please wait...")
+		    if num not in range(1, 91+1):
+		        raise IndexError
+		    country = countries[num-1]
+		    res = requests.get(
+		        f"http://www.insecam.org/en/bycountry/{country}", headers=headers
+		    )
+		    last_page = re.findall(r'pagenavigator\("\?page=", (\d+)', res.text)[0]
+
+		    for page in range(int(last_page)):
+		        res = requests.get(f"http://www.insecam.org/en/bycountry/{country}/?page={page}",headers=headers)
+		        find_ip = re.findall(r"http://\d+.\d+.\d+.\d+:\d+", res.text)
+		        for ip in find_ip:
+		            ip_list = []
+		            ip_list.append(ip)
+		            ip_list = ' '.join(ip_list).replace('http://','').split()
+		            for single in ip_list:
+		            	ip_port = single
+		            	single, sep, tail = single.partition(':')
+		            	web = "http://ip-api.com/json/"
+		            	target = single
+		            	web += target
+		            	response = requests.get(web).json()
+		            	camera = "http://" + ip_port
+		            	loc = response['city']
+		            	separator = "|"
+		            	print(Fore.GREEN + '{0:30}{1:10}{2:10}'.format(camera,separator, loc) + Fore.WHITE)
+
+		except ValueError:
+		    print("\n[-] Quitting...\n\n")
+		except KeyboardInterrupt:
+			print("\n[-] Program interrumpted by user, quitting...\n")
+		except:
+			pass
+		back_m()
+
+	def exif_jpg():
+		from PIL import Image
+		from PIL.ExifTags import GPSTAGS, TAGS
+		## Create google maps url given certain coordinates ##
+		def create_google_maps_url(gps_coords):            
+		    dec_deg_lat = convert_decimal_degrees(float(gps_coords["lat"][0]),  float(gps_coords["lat"][1]), float(gps_coords["lat"][2]), gps_coords["lat_ref"])
+		    dec_deg_lon = convert_decimal_degrees(float(gps_coords["lon"][0]),  float(gps_coords["lon"][1]), float(gps_coords["lon"][2]), gps_coords["lon_ref"])
+		    return f"https://maps.google.com/?q={dec_deg_lat},{dec_deg_lon}"
+
+		def convert_decimal_degrees(degree, minutes, seconds, direction):
+		    decimal_degrees = degree + minutes / 60 + seconds / 3600
+		    if direction == "S" or direction == "W":
+		        decimal_degrees *= -1
+		    return decimal_degrees
+
+		## Menu Prompt ##       
+		while True:
+		    output_choice = input(Fore.GREEN + """
+[+]--How do you want to receive the output:
+[?]--Remember to store pictures in a folder called images on the same folder as this tool
+---------------------------------------------------------------------------------------
+[1]--File
+[2]--Terminal\n\n""" + Fore.WHITE)
+		    try:
+		        conv_val = int(output_choice)
+		        if conv_val == 1:
+		            sys.stdout = open("exif-data_dump.txt", "w")
+		            break
+		        elif conv_val == 2:
+		            break
+		        else:
+		            print(Fore.GREEN + "\n[-] Wrong value given, try again...\n\n" + Fore.WHITE)
+		    except ValueError:
+		        print(Fore.GREEN + "\n[-] Wrong value given, try again...\n\n" + Fore.WHITE)
+		    except KeyboardInterrupt:
+		        print(Fore.GREEN + "\n[-] Program interrumpted by user, quitting...\n\n" + Fore.WHITE)
+
+		## Navigate to Folder ##
+		cwd = os.getcwd()
+		try:
+			os.chdir(os.path.join(cwd, "images"))
+		except:
+			print(Fore.RED + "[-] No folder found, please create one and store the images inside..." + Fore.WHITE)
+		
+		files = os.listdir()
+		## Check files in folder ##
+		if len(files) == 0:
+		    print("[-] ./images folder is empty or does not contain pictures in the right format")
+		    exit()
+		# Loop through the files in the images directory.
+		for file in files:
+		    try:
+		        image = Image.open(file)
+		        print(Fore.GREEN + f"----------------------------{file}---------------------------" + Fore.WHITE)
+		        gps_coords = {}
+		        if image._getexif() == None:
+		            print(f"{file} contains no exif data.")
+		        else:
+		            for tag, value in image._getexif().items():
+		                tag_name = TAGS.get(tag)
+		                if tag_name == "GPSInfo":
+		                    for key, val in value.items():
+		                        print(f"{GPSTAGS.get(key)} - {val}")
+		                        if GPSTAGS.get(key) == "GPSLatitude":
+		                            gps_coords["lat"] = val
+		                        elif GPSTAGS.get(key) == "GPSLongitude":
+		                            gps_coords["lon"] = val
+		                        elif GPSTAGS.get(key) == "GPSLatitudeRef":
+		                            gps_coords["lat_ref"] = val
+		                        elif GPSTAGS.get(key) == "GPSLongitudeRef":
+		                            gps_coords["lon_ref"] = val   
+		                else:
+		                    print(f"{tag_name} - {value}")
+		            if gps_coords:
+		                print(create_google_maps_url(gps_coords))
+		        print(Fore.GREEN + "-"*80 + Fore.WHITE)
+		    except IOError:
+		        print("[-] File format not supported!")
+
+		if output_choice == "1":
+		    sys.stdout.close()
+		os.chdir(cwd)
+
+
+
+	## MAIN MENU RETURN FUNCTION ##
+	def back_m():
+		time.sleep(1)
+		menu = int(input(Fore.GREEN + """
+[?]--Return to main menu?
+-------------------------
+[01]--Yes
+[02]--No
+""" + Fore.WHITE))
+		if menu == 1:
+			print(Fore.YELLOW + "[+]--Returning to main menu..." + Fore.WHITE)
+			time.sleep(2)
+			os.system("clear")
+			logo()
+			main_menu()
+		else:
+			print(Fore.RED + "[-]--Quitting..." + Fore.WHITE)
+
+	def install():
+		os.system('chmod +x ./install.sh')
+		os.system('./install/install.sh')
+
+	def logo():
+		print(Fore.RED + """
+	 _____  ____________________  ___
+	|  ___||___  /  _  | ___ \  \/  |
+	|___ \    / /| |/' | |_/ / .  . |
+	    \ \  / / |  /| |    /| |\/| |
+	/\__/ /./ /  \ |_/ / |\ \| |  | |
+	\____/ \_/    \___/\_| \_\_|  |_/
+				  OSINT's""" + Fore.WHITE)
+
+	def main_menu():
+		choice = int(input(Fore.GREEN + """
+[?]--Welcome! Choose one of the options below:
+-----------------------------------------------
+[01]--Domain OSINT
+[02]--Tweet gatherer (Location/User)
+[03]--Phone Number OSINT
+[04]--Last 30 days index of URLHaus threats
+[05]--SearchCode lookup
+[06]--Leaked emails check
+[07]--CCTV Cameras filtered by Country and City
+[08]--JPEG/JPG Exif data dumping
+[99]--Install Dependencies
+""" + Fore.RED + """[00]--Quit
+""" + Fore.WHITE))
+		if choice == 1:
+			target = input(Fore.YELLOW + "\n[?]--Specify the domain you wish to target: " + Fore.WHITE)
+			domain(target)
+		if choice == 2:
+			tweets()
+		if choice == 3:
+			target = input(Fore.YELLOW + "\n[?]--Specify the number you wish to target: " + Fore.WHITE)
+			config_key = input(Fore.YELLOW + "[?]--Specify the API key from numverify: " + Fore.WHITE)
+			phone(target, config_key)
+		if choice == 4:
+			urlhaus()
+		if choice == 5:
+			searchcode_checker()
+		if choice == 6:
+			leaks_check()
+		if choice == 7:
+			cameras()
+		if choice == 8:
+			exif_jpg()
+		if choice == 99:
+			install()
+
+	### EXECUTION ###
+	os.system("clear")
+	logo()
+	main_menu()
+except KeyboardInterrupt:
+	print(Fore.RED + "\n[-] Program interrumpted user, quitting...\n" + Fore.WHITE)
+except ValueError:
+	print(Fore.RED + "\n[-] Wrong value given, quitting...\n" + Fore.WHITE)
