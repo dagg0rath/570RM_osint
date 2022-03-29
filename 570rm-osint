@@ -828,7 +828,7 @@ try:
 			print(Fore.RED + "[-]--Quitting..." + Fore.WHITE)
 
 	def install():
-		os.system('chmod +x ./install.sh')
+		os.system('chmod +x ./install/install.sh')
 		os.system('./install/install.sh')
 
 	def logo():
