@@ -1,6 +1,6 @@
 <img width="422" alt="Captura de Pantalla 2022-03-29 a las 19 20 51" src="https://user-images.githubusercontent.com/58988471/160670502-37320eb5-4bdc-4d84-a9ea-d6cf4deda3b1.png">
 
-OSINT Tools gathered in a simple tu use tool built in python3. Get your own ~numverify.com API Key~ in order to run the 3rd module
+OSINT Tools gathered in a simple tu use tool built in python3. Get your own __numverify.com API Key__ in order to run the 3rd module
 
 # Install
 * git clone https://github.com/mrcripoll/570RM_osint/
