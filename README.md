@@ -2,8 +2,8 @@
 
 
 # Install
-git clone https://github.com/mrcripoll/570RM_osint/
-cd 570RM_osint
-chmod +x 570RM_osint
-./570RM_osint
-99
+*git clone https://github.com/mrcripoll/570RM_osint/
+*cd 570RM_osint
+*chmod +x 570RM_osint
+*./570RM_osint
+*99
