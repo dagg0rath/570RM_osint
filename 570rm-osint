@@ -1,4 +1,6 @@
 #!/bin/python3
+# Author: dagg0rath at https://github.com/dagg0rath
+
 ## Imports ##
 import subprocess, time, sys, re, os
 from colorama import Fore
