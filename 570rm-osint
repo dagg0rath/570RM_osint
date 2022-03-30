@@ -15,15 +15,7 @@ try:
 			web = f"http://ip-api.com/json/{target}"
 			age_web = f"https://input.payapi.io/v1/api/fraud/domain/age/{target}"
 			response = requests.get(web).json()
-			
-			response2 = requests.get(age_web).json()
-			days = response2['result']
-			if days >= 365:
-				years = days // 365
-				months = (days - years*365) // 30
-				n_days = (days - years * 365 - months*30)
-			else:
-				aged = aged
+
 			
 			print(Fore.GREEN + f"\n[=]--Gathering information about {target}...")
 			print("-"*60 + "\n" + Fore.WHITE)
@@ -35,7 +27,18 @@ try:
 			print("Latitude: " + str(response['lat']))
 			print("Longitude: " + str(response['lon']))
 			print("ISP: " + response['isp'])
-			print(f"Ages: {years} years {months} months y {n_days} days")
+			response2 = requests.get(age_web).json()
+			if "error" in response2:
+				pass
+			else:
+				days = response2['result']		
+				if days >= 365:
+					years = days // 365
+					months = (days - years*365) // 30
+					n_days = (days - years * 365 - months*30)
+				else:
+					aged = aged
+				print(f"Ages: {years} years {months} months and {n_days} days")
 			print(Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
 
 		def whois_l(target):
