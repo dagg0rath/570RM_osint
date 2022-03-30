@@ -35,7 +35,7 @@ try:
 			print("Latitude: " + str(response['lat']))
 			print("Longitude: " + str(response['lon']))
 			print("ISP: " + response['isp'])
-			print(f"Ages: {years} años {months} meses y {n_days} días")
+			print(f"Ages: {years} years {months} months y {n_days} days")
 			print(Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
 
 		def whois_l(target):
