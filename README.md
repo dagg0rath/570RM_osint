@@ -5,6 +5,7 @@ STORM is an OSINT Tools gathered in a simple tu use tool built in python3. Get y
 # Install
 * git clone https://github.com/dagg0rath/570RM_osint/
 * cd 570RM_osint
+* pip3 install colorama
 * chmod +x 570RM_osint
-* ./570RM_osint
+* ../570RM_osint
 * 99
