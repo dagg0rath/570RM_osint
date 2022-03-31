@@ -2,6 +2,5 @@ bs4
 requests
 pandas
 urllib3
-hashlib
 argparse
 urllib
