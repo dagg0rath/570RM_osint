@@ -3,4 +3,3 @@ requests
 pandas
 urllib3
 argparse
-urllib
