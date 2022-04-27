@@ -3,7 +3,7 @@
 
 ## Imports ##
 import subprocess, time, sys, re, os
-from colorama import Fore
+from colorama import Fore, Style
 from sys import platform
 import readline
 import requests
@@ -11,6 +11,7 @@ import json, csv
 try:
 	## DOMAIN OSINT ##
 	def domain(target):
+		os.system(f'mkdir ./results/{target}')
 		def lookup(target):
 			import requests
 
@@ -41,7 +42,28 @@ try:
 				else:
 					aged = aged
 				print(f"Age: {years} years {months} months and {n_days} days")
-			print(Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+			print(Fore.GREEN + "-"*60 + Fore.WHITE)
+
+		def shodan(target):
+			web = f"http://ip-api.com/json/{target}"
+			response = requests.get(web).json()
+
+			ip = response['query']
+			print(Fore.MAGENTA + f"\n[=]--SHODAN API info:"+ Style.RESET_ALL)
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
+			try:
+				host = requests.get(f"https://internetdb.shodan.io/{ip}").json()
+				print("[=] IP: ", host["ip"])
+				print("[=] CPEs: ", host["cpes"])
+				print("[=] Open Ports: ", host["ports"])
+				print("[=] Tags: ", host["tags"])
+				print("[=] Vulnerabilities: ", host["vulns"])
+				print("[=] Domains: ", host["hostnames"])
+				print(f"[+] Shodan URL: https://www.shodan.io/host/{ip}")
+			except Exception as e:
+				print(f'No information available for the given domain')
+				print(f"[+] Shodan URL: https://www.shodan.io/host/{ip}")
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
 
 		def whois_l(target):
 			print(Fore.RED + "[=]--WHOIS output" + Fore.WHITE)
@@ -58,12 +80,12 @@ try:
 		def tracer(target):
 			print(Fore.RED + "[=]--TraceRoute Lookup output" + Fore.WHITE)
 			print("\n" + Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
-			os.system(f'mtr -4 -rwc 1 {target}')
+			os.system(f'sudo traceroute -T {target}')
 			print(Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
 
 		def hunter(target):
-			print(Fore.RED + "[=]--Email Hunter output" + Fore.WHITE)
-			print("\n" + Fore.GREEN + "-"*60 + "\n" + Fore.WHITE)
+			print(Fore.RED + "[=]--Email addresses:" + Style.RESET_ALL)
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
 			get_html = os.system(f'curl -s -o {target}_emails.html https://www.email-format.com/d/{target}/')
 
 			lines = []
@@ -81,15 +103,42 @@ try:
 			os.system(f"grep @{target} {target}_emails.html | sed 's/[[:blank:]]//g' >> emails.txt")
 			os.system(f'cat emails.txt')
 			os.remove(f'{target}_emails.html')
-			print("\n"+ Fore.GREEN + "-"*50 + Fore.WHITE)
-			
-			print(Fore.RED + "[+]--Gathered emails stored in emails.txt "+ Fore.WHITE)
+			os.system(f'mv ./results/emails.txt ./{target}/')		
+			print(Fore.RED + f"\n[+]--Emails stored at ./results/{target}/emails.txt "+ Style.RESET_ALL)
 				
+		def subdomain(target):
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
+			print(Fore.RED + "[=]--Subdomains with assetfinder" + Style.RESET_ALL)
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
+			os.system(f'./scripts/assetfinder --subs-only {target} >> {target}_subdomains.txt')
+			os.system(f'sort -u {target}_subdomains.txt -o {target}_subdomains.txt')
+			os.system(f'mv ./{target}_subdomains.txt ./results/{target}/subdom.txt')
+			os.system(f'cat ./results/{target}/subdom.txt')
+			print("\n"+ Fore.GREEN + "-"*50 + Style.RESET_ALL)
+			print(Fore.RED + f"[+]--Subdomains stored at {target}/subdom.txt \n"+ Style.RESET_ALL)
+
+		def leak(target):
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
+			print(Fore.RED + "[=]--Checking possible breached credentials" + Style.RESET_ALL)
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
+			folder = input(Fore.YELLOW + "[?] Please, especifiy BreachCompilation/data route: " + Style.RESET_ALL)
+			os.system(f'./scripts/breach-parse.sh @{target} {target}.txt {folder}')
+			os.system(f'grep -F "@{target}" *-master.txt >> {target}-leaks.txt')
+			os.system(f'mv {target}-leaks.txt ./results/{target}/')
+			os.system(f'rm ./*.txt')
+			os.system(f'cat ./results/{target}/*-leaks.txt')
+			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
+			print(Fore.RED + f"[+] Results stored at ./results/{target}" + Style.RESET_ALL)
+
+
 		lookup(target)
+		shodan(target)
 		whois_l(target)
 		dns_l(target)
 		tracer(target)
 		hunter(target)
+		subdomain(target)
+		leak(target)
 		back_m()
 
 	## TWITTER OSINT ##
@@ -555,7 +604,7 @@ try:
 						start_index = response.text.find("breach-key", end_key) + 12
 					start_breachName = response.text.find("breach-title", end_breachName)
 				if not leaks:
-					print(Fore.BLUE + "[-] Email not found on Firefox Monitor")
+					print(Fore.GREEN + "[-] Email not found on Firefox Monitor")
 		def check_firefox_monitor(email):
 			print(Fore.WHITE + f"------------------------------\n Checking {email} on Firefox Monitor\n------------------------------")
 			url_form = 'https://monitor.firefox.com'
@@ -602,13 +651,8 @@ try:
 						credentials_leaked) + "\nBreach data? " + str(data_breach))
 			except:
 				print(Fore.RED + "Error: " + emailreputation["reason"])
-		def breachparse(email):
-			folder = input(Fore.YELLOW + "[?] Specify the route for your BreachCompilation/data folder: " + Fore.WHITE)
-			os.system(f'./breach-parse.sh {email} {email}.txt {folder}')
-			print(Fore.RED + "[+] Results stored in current directory" + Fore.WHITE)
 
-
-		f_e = int(input(Fore.BLUE + """
+		f_e = int(input(Fore.GREEN + """
 [?] Choose one of the options below:
 --------------------------------------------
 [01]--Email
@@ -618,12 +662,6 @@ try:
 			email = input(Fore.YELLOW + "[?] Specify the email you want to check: " + Fore.WHITE)
 			check_firefox_monitor(email)
 			emailreputation(email)
-			breachh = input(Fore.YELLOW + "[?] Check for breached credentials on BreachCompilation file (Y/n): " + Fore.WHITE)
-			if breachh.upper() == "Y":
-				print(Fore.RED + "[+] breach-parse script by hmaverickadams at https://github.com/hmaverickadams/breach-parse")
-				breachparse(email)
-			else:
-				pass
 		else:
 			file_n = input(Fore.YELLOW + "[?] Specify the name of the .txt file where emails are stored: "+ Fore.WHITE)
 			archivo = open(f'{file_n}', 'r')
@@ -632,13 +670,6 @@ try:
 				email = line
 				check_firefox_monitor(email)
 				emailreputation(email)
-				breachh = input(Fore.YELLOW + "[?] Check for breached credentials on BreachCompilation file (Y/n): " + Fore.WHITE)
-				if breachh.upper() == "Y":
-					print(Fore.RED + "[+] breach-parse script by hmaverickadams at https://github.com/hmaverickadams/breach-parse")
-					breachparse(email)
-				else:
-					pass
-				time.sleep(3)
 		back_m()
 
 
