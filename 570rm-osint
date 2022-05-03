@@ -96,14 +96,14 @@ try:
 			with open(f'{target}_emails.html', 'w') as file:
 				file.writelines(lines)
 			try:
-				os.remove("emails.txt")
+				os.remove("emails.txt")	
+				os.system(f"grep @{target} {target}_emails.html | sed 's/[[:blank:]]//g' >> emails.txt")
+				os.system(f'cat emails.txt')
+				os.remove(f'{target}_emails.html')
+				os.system(f'mv ./results/emails.txt ./{target}/')	
 			except OSError:
 				pass
-
-			os.system(f"grep @{target} {target}_emails.html | sed 's/[[:blank:]]//g' >> emails.txt")
-			os.system(f'cat emails.txt')
-			os.remove(f'{target}_emails.html')
-			os.system(f'mv ./results/emails.txt ./{target}/')		
+	
 			print(Fore.RED + f"\n[+]--Emails stored at ./results/{target}/emails.txt "+ Style.RESET_ALL)
 				
 		def subdomain(target):
@@ -111,9 +111,12 @@ try:
 			print(Fore.RED + "[=]--Subdomains with assetfinder" + Style.RESET_ALL)
 			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
 			os.system(f'./scripts/assetfinder --subs-only {target} >> {target}_subdomains.txt')
-			os.system(f'sort -u {target}_subdomains.txt -o {target}_subdomains.txt')
-			os.system(f'mv ./{target}_subdomains.txt ./results/{target}/subdom.txt')
-			os.system(f'cat ./results/{target}/subdom.txt')
+			try:
+				os.system(f'sort -u {target}_subdomains.txt -o {target}_subdomains.txt')
+				os.system(f'mv ./{target}_subdomains.txt ./results/{target}/subdom.txt')
+				os.system(f'cat ./results/{target}/subdom.txt')
+			except OSError:
+				pass
 			print("\n"+ Fore.GREEN + "-"*50 + Style.RESET_ALL)
 			print(Fore.RED + f"[+]--Subdomains stored at {target}/subdom.txt \n"+ Style.RESET_ALL)
 
@@ -121,12 +124,15 @@ try:
 			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
 			print(Fore.RED + "[=]--Checking possible breached credentials" + Style.RESET_ALL)
 			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
-			folder = input(Fore.YELLOW + "[?] Please, especifiy BreachCompilation/data route: " + Style.RESET_ALL)
-			os.system(f'./scripts/breach-parse.sh @{target} {target}.txt {folder}')
-			os.system(f'grep -F "@{target}" *-master.txt >> {target}-leaks.txt')
-			os.system(f'mv {target}-leaks.txt ./results/{target}/')
-			os.system(f'rm ./*.txt')
-			os.system(f'cat ./results/{target}/*-leaks.txt')
+			try:
+				folder = input(Fore.YELLOW + "[?] Please, especifiy BreachCompilation/data route: " + Style.RESET_ALL)
+				os.system(f'./scripts/breach-parse.sh @{target} {target}.txt {folder}')
+				os.system(f'grep -F "@{target}" *-master.txt >> {target}-leaks.txt')
+				os.system(f'mv {target}-leaks.txt ./results/{target}/')
+				os.system(f'rm ./*.txt')
+				os.system(f'cat ./results/{target}/*-leaks.txt')
+			except:
+				pass
 			print("\n" + Fore.GREEN + "-"*60 + "\n" + Style.RESET_ALL)
 			print(Fore.RED + f"[+] Results stored at ./results/{target}" + Style.RESET_ALL)
 
