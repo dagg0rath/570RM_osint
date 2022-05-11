@@ -10,4 +10,8 @@ pip3 install --user --upgrade git+https://github.com/himanshudabas/twint.git@ori
 echo "\n[+] Installing Python Modules...\n"
 pip3 install -r ./install/pip_requirements.txt
 
+echo "\n[+] Changing Permissions...\n"
+chmod +x ./scripts/assetfinder
+chmod +x ./scripts/breach-parse.sh
+
 echo "\n[=] Installation completed! \n"
